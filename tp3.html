@@ -1,0 +1,177 @@
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <script>  
+    // http://www.html5rocks.com/en/tutorials/getusermedia/intro/?redirect_from_locale=fr           
+    function hasGetUserMedia() {
+      // Note: Opera is unprefixed.
+      return !!(navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
+    }    
+    if (hasGetUserMedia()) {
+      // Good to go!
+    } else {
+      alert('getUserMedia() is not supported in your browser');
+    }  
+  </script>
+  </head>
+  <body onload="getInformation()" >
+  
+
+
+    <table align="center">
+
+      <tr>
+	  
+        <td align="center" ><video style="width:480px" id="myVideo" autoplay hidden ></video></td>
+		
+        <td align="center"><canvas style="width:480px" id="myCanvas"></canvas></td> 
+      </tr>
+      <tr>
+        <td align="center"></td>       
+        <td align="center"><b id="Latitude"></b></td>
+	  </tr>
+	  <tr>
+        <td align="center"></td>       
+        <td align="center"><b id="longitude"></b></td>
+	  </tr>
+	  <tr>
+        <td align="center"></td>       
+        <td align="center"><b id="DateTime"></b></td>
+	  </tr>    
+    </table>
+	 
+	 
+	 <script>
+      var Latitude=document.getElementById("Latitude");  
+      var longitude=document.getElementById("longitude");  
+	  var datetime=document.getElementById("DateTime");
+	 function getInformation()
+	 {
+	 getLatitude();
+	 getlongitude();
+	 getDateTime();
+	 }
+
+        function showLatitude(position) {
+          Latitude.innerHTML="Latitude: " + position.coords.latitude;           
+        }
+		
+	 function getLatitude() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(showLatitude);
+        }
+        else {
+          Latitude.innerHTML="Geolocation is not supported by this browser.";
+        }
+        }
+
+		
+		
+		function getlongitude() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(showlongitude);
+        }
+        else {
+          longitude.innerHTML="Geolocation is not supported by this browser.";
+        }
+        }
+        function showlongitude(position) {
+          longitude.innerHTML="longitude: " + position.coords.longitude;           
+        }
+		function getDateTime() {
+		var d = new Date();
+		 datetime.innerHTML="Date/temps:"+d.getDate()+"/"+(d.getMonth()+1)+"/"+d.getFullYear()+"-"+d.getHours()+":"+d.getUTCMinutes();
+		}
+      </script>
+      
+	  
+	  <script>
+
+
+      window.URL = window.URL || window.webkitURL;
+      navigator.getUserMedia  = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+      var video = document.getElementById("myVideo");     
+      var canvas = document.getElementById("myCanvas");      
+      canvas.width = 640;
+      canvas.height = 480;
+      var ctx = canvas.getContext('2d');
+      ctx.fillStyle='#00FFFF';
+      ctx.fillRect(0,0,canvas.width,canvas.height);      
+      var myStream = null;      
+      var x = canvas.width/2;
+      var y = canvas.height/2;      
+                  
+      function canvasPlayer() {
+        if (myStream) {
+          ctx.drawImage(video, 0, 0);
+          //var threshold = document.getElementById("Threshold").value;
+          var currentImage = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          var pixels = currentImage.data;
+          var n = pixels.length;                  
+          var meanValue, row=0, line=0, i, moved=false;
+          
+          ctx.putImageData(currentImage,0, 0);           
+          // draw a moving circle
+	        ctx.beginPath();
+          ctx.fillStyle="#00FFFF";
+          ctx.arc(x,y,50,0,Math.PI*2,true);
+          //ctx.closePath();
+          
+          
+          ctx.lineWidth = 5;
+          ctx.strokeStyle="#FF0000";
+          //ctx.stroke();
+
+          ctx.lineWidth = 2;
+
+          //ligne de droite
+          ctx.moveTo(x+50,y);
+          ctx.lineTo(x+50+50,y);
+
+          //ligne de gauche
+          ctx.moveTo(x-50,y);
+          ctx.lineTo(x-50-50,y);
+
+
+          //ligne du haut
+          ctx.moveTo(x,y+50);
+          ctx.lineTo(x,y+50+50);
+
+          //ligne du bas
+          ctx.moveTo(x,y-50);
+          ctx.lineTo(x,y-50-50);
+
+
+          ctx.stroke();
+        }
+      }
+       
+      if (navigator.getUserMedia) {
+        navigator.getUserMedia(
+          // Constraints
+          {video: true}, 
+          // Success Callback
+          function success(localMediaStream) {
+            try {
+              video.srcObject = localMediaStream;
+            } catch (error) {
+              video.src = window.URL.createObjectURL(localMediaStream);
+            }
+            myStream = localMediaStream;
+            // call canvasPlayer every 20ms
+            window.setInterval(canvasPlayer, 20);          
+          }, 
+          // Error Callback
+          function fallback(err) {
+            // Log the error to the console.
+            console.log('The following error occurred when trying to use getUserMedia: ' + err);
+          }
+        );        
+      }
+      else {
+        alert('Sorry, your browser does not support getUserMedia');      
+      }    
+    </script>   
+  </body>
+  </html>
